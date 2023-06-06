@@ -1,0 +1,24 @@
+# Copyright (c) 2023 EPAM Systems
+# SPDX-License-Identifier: Apache-2.0
+
+mainmenu "OPTEE Library"
+
+config OPTEE_CLIENT
+	bool "Enable optee-client"
+	help
+	  Enable optee-client librarry
+
+if OPTEE_CLIENT
+
+config OPTEE_LIBTEEC
+	bool "Enable libteec"
+	help
+	  Enable teec library
+
+config OPTEE_LIBCKTEEC
+	bool "Enable libclteec"
+	depends on  OPTEE_LIBTEEC
+	help
+	  Enable ckteec library
+
+endif
