@@ -37,6 +37,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <zephyr/drivers/tee.h>
 
 /*
  * Defines the number of available memory references in an open session or
@@ -255,7 +256,7 @@ typedef uint32_t TEEC_Result;
  */
 typedef struct {
 	/* Implementation defined */
-	int fd;
+	const struct device *dev;
 	bool reg_mem;
 	bool memref_null;
 } TEEC_Context;
@@ -298,7 +299,7 @@ typedef struct {
 	int id;
 	size_t alloced_size;
 	void *shadow_buffer;
-	int registered_fd;
+	struct tee_shm *registered_shm;
 	union {
 		bool dummy;
 		uint8_t flags;
@@ -534,10 +535,10 @@ TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context,
 
 /**
  * TEEC_ReleaseSharedMemory() - Free or deregister the shared memory.
- *
+ * @param ctx TEEC_Contexst
  * @param sharedMem  Pointer to the shared memory to be freed.
  */
-void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *sharedMemory);
+void TEEC_ReleaseSharedMemory(TEEC_Context *ctx, TEEC_SharedMemory *sharedMemory);
 
 /**
  * TEEC_RequestCancellation() - Request the cancellation of a pending open

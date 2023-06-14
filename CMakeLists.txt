@@ -9,3 +9,4 @@ endif()
 
 add_subdirectory_ifdef(CONFIG_OPTEE_LIBTEEC libteec)
 add_subdirectory_ifdef(CONFIG_OPTEE_LIBCKTEEC libckteec)
+add_subdirectory_ifdef(CONFIG_OPTEE_SHELL optee-shell-cmd)

@@ -15,10 +15,26 @@ config OPTEE_LIBTEEC
 	help
 	  Enable teec library
 
+config OPTEE_SHELL
+	bool "Enable shell"
+	help
+	  Enable shell commands for optee
+
+config OPTEE_BENCHMARK
+	bool "Enable benchmark"
+	depends on OPTEE_LIBTEEC
+	help
+	  Enable bencmarking for libteec library
+
 config OPTEE_LIBCKTEEC
 	bool "Enable libclteec"
 	depends on  OPTEE_LIBTEEC
 	help
 	  Enable ckteec library
+
+config OPTEE_DRV_STUB
+	bool "Use optee driver stub"
+	help
+	  Use optee driver stub
 
 endif
