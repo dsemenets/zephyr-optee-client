@@ -191,7 +191,7 @@ static int tee_fs_open(size_t num_params, struct tee_param *params, int flags)
 
 static int tee_fs_close(size_t num_params, struct tee_param *params)
 {
-	if (num_params != 1  || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
+	if (num_params != 1 || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
 		TEE_PARAM_ATTR_TYPE_VALUE_INPUT)
 	{
 		return TEEC_ERROR_BAD_PARAMETERS;
@@ -310,7 +310,7 @@ static int tee_fs_truncate(size_t num_params, struct tee_param *params)
 	void *ptr = NULL;
 	struct fs_file_t *file;
 
-	if (num_params != 1  || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
+	if (num_params != 1 || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
 		TEE_PARAM_ATTR_TYPE_VALUE_INPUT)
 	{
 		return TEEC_ERROR_BAD_PARAMETERS;
@@ -474,7 +474,7 @@ static int tee_fs_closedir(size_t num_params, struct tee_param *params)
 {
 	DIR *dirp;
 
-	if (num_params != 1  || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
+	if (num_params != 1 || (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) !=
 		TEE_PARAM_ATTR_TYPE_VALUE_INPUT)
 	{
 		return TEEC_ERROR_BAD_PARAMETERS;
