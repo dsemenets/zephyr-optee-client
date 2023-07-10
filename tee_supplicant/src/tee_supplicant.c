@@ -595,9 +595,6 @@ static int shm_alloc(const struct device *dev, uint32_t num_params,
 		return TEEC_ERROR_BAD_PARAMETERS;
 	}
 
-	/*TODO: params[0].a is buffer type OPTEE_RPC_SHM_TYPE_*
-	 * params[0].c is alignment
-	*/
 	switch (params[0].attr & TEE_PARAM_ATTR_TYPE_MASK) {
 	case TEE_PARAM_ATTR_TYPE_VALUE_INPUT:
 	case TEE_PARAM_ATTR_TYPE_VALUE_OUTPUT:
