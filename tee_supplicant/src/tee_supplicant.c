@@ -24,6 +24,12 @@ LOG_MODULE_REGISTER(tee_supplicant);
 
 #define TEE_REQ_PARAM_MAX	5
 
+/* where FS gets mounted */
+/*TODO: make it in sync with DTS fstab */
+#define REE_FS_MP "/tee"
+#define REE_FS_PATHLEN sizeof(REE_FS_MP)
+#define REE_FS_PATH_MAX (PATH_MAX + REE_FS_PATHLEN)
+
 static struct k_thread main_thread;
 static K_THREAD_STACK_DEFINE(main_stack, 8192);
 
@@ -143,7 +149,7 @@ static int load_ta(uint32_t num_params, struct tee_param *params)
 static int tee_fs_open(size_t num_params, struct tee_param *params, int flags)
 {
 	struct tee_shm *shm;
-	char *name, path[128 + 4] = "/tee";
+	char *name, path[REE_FS_PATH_MAX] = REE_FS_MP;
 	int fd;
 
 	if (num_params != 3) {
@@ -168,7 +174,7 @@ static int tee_fs_open(size_t num_params, struct tee_param *params, int flags)
 	}
 
 	name = shm->addr;
-	strncat(path, name, 128);
+	strncat(path, name, PATH_MAX);
 	fd = open(path, flags, 0600);
 	if (fd < 0) {
 		if (errno == ENOENT) {
@@ -333,7 +339,7 @@ static int tee_fs_truncate(size_t num_params, struct tee_param *params)
 static int tee_fs_remove(size_t num_params, struct tee_param *params)
 {
 	struct tee_shm *shm;
-	char *name, path[128 + 4] = "/tee";
+	char *name, path[REE_FS_PATH_MAX] = REE_FS_MP;
 
 	if (num_params != 2) {
 		return TEEC_ERROR_BAD_PARAMETERS;
@@ -355,7 +361,7 @@ static int tee_fs_remove(size_t num_params, struct tee_param *params)
 	}
 
 	name = shm->addr;
-	strncat(path, name, 128);
+	strncat(path, name, PATH_MAX);
 
 	if (unlink(path) < 0) {
 		if (errno == ENOENT) {
@@ -371,8 +377,8 @@ static int tee_fs_remove(size_t num_params, struct tee_param *params)
 
 static int tee_fs_rename(size_t num_params, struct tee_param *params)
 {
-	char *name, path[128 + 4] = "/tee";
-	char *new_name, new_path[128 + 4] = "/tee";
+	char *name, path[REE_FS_PATH_MAX] = REE_FS_MP;
+	char *new_name, new_path[REE_FS_PATH_MAX] = REE_FS_MP;
 	struct tee_shm *shm;
 
 	if (num_params != 3) {
@@ -397,7 +403,7 @@ static int tee_fs_rename(size_t num_params, struct tee_param *params)
 	}
 
 	name = shm->addr;
-	strncat(path, name, 128);
+	strncat(path, name, PATH_MAX);
 
 	shm = (struct tee_shm *)params[2].c;
 
@@ -406,7 +412,7 @@ static int tee_fs_rename(size_t num_params, struct tee_param *params)
 	}
 
 	new_name = shm->addr;
-	strncat(new_path, new_name, 128);
+	strncat(new_path, new_name, PATH_MAX);
 
 	if (!params[0].b) {
 		struct stat buf;
@@ -427,7 +433,7 @@ static int tee_fs_rename(size_t num_params, struct tee_param *params)
 static int tee_fs_opendir(size_t num_params, struct tee_param *params)
 {
 	struct tee_shm *shm;
-	char *name, path[128 + 4] = "/tee";
+	char *name, path[REE_FS_PATH_MAX] = REE_FS_MP;
 	DIR *dirp;
 
 	if (num_params != 3) {
@@ -452,7 +458,7 @@ static int tee_fs_opendir(size_t num_params, struct tee_param *params)
 	}
 
 	name = shm->addr;
-	strncat(path, name, 128);
+	strncat(path, name, PATH_MAX);
 	dirp = opendir(path);
 	if (!dirp) {
 		LOG_ERR("failed to open %s (%d)", path, -errno);
