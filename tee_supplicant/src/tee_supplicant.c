@@ -177,10 +177,11 @@ static int tee_fs_open(size_t num_params, struct tee_param *params, int flags)
 	strncat(path, name, PATH_MAX);
 	fd = open(path, flags, 0600);
 	if (fd < 0) {
-		if (errno == ENOENT) {
+		int rc = -errno;
+		if (rc == -ENOENT) {
 			return TEEC_ERROR_ITEM_NOT_FOUND;
 		}
-		LOG_ERR("failed to open/create %s (%d)", path, -errno);
+		LOG_ERR("failed to open/create %s (%d)", path, rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -198,7 +199,8 @@ static int tee_fs_close(size_t num_params, struct tee_param *params)
 	}
 
 	if (close((int)params[0].b) < 0) {
-		LOG_ERR("failed to close file (%d)", -errno);
+		int rc = -errno;
+		LOG_ERR("failed to close file (%d)", rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -239,14 +241,16 @@ static int tee_fs_read(size_t num_params, struct tee_param *params)
 	buf = shm->addr;
 	position = lseek(fd, offset, SEEK_SET);
 	if ((int)position < 0) {
-		LOG_ERR("invalid offset %lu (%d)", offset, -errno);
+		int rc = -errno;
+		LOG_ERR("invalid offset %lu (%d)", offset, rc);
 		return TEEC_ERROR_ITEM_NOT_FOUND;
 	}
 
 	/*TODO: handle sz < len */
 	sz = read(fd, buf, len);
 	if ((int)sz < 0) {
-		LOG_ERR("read failure (%d)", -errno);
+		int rc = -errno;
+		LOG_ERR("read failure (%d)", rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -288,14 +292,16 @@ static int tee_fs_write(size_t num_params, struct tee_param *params)
 	buf = shm->addr;
 	position = lseek(fd, offset, SEEK_SET);
 	if ((int)position < 0) {
-		LOG_ERR("invalid offset %lu (%d)", offset, -errno);
+		int rc = -errno;
+		LOG_ERR("invalid offset %lu (%d)", offset, rc);
 		return TEEC_ERROR_ITEM_NOT_FOUND;
 	}
 
 	sz = write(fd, buf, len);
 	if ((int)sz < 0) {
 		/*TODO: handle error cases */
-		LOG_ERR("write failure (%d)", -errno);
+		int rc = -errno;
+		LOG_ERR("write failure (%d)", rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -364,10 +370,11 @@ static int tee_fs_remove(size_t num_params, struct tee_param *params)
 	strncat(path, name, PATH_MAX);
 
 	if (unlink(path) < 0) {
-		if (errno == ENOENT) {
+		int rc = -errno;
+		if (rc == -ENOENT) {
 			return TEEC_ERROR_ITEM_NOT_FOUND;
 		}
-		LOG_ERR("failed to unlink %s (%d)", path, -errno);
+		LOG_ERR("failed to unlink %s (%d)", path, rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -422,8 +429,9 @@ static int tee_fs_rename(size_t num_params, struct tee_param *params)
 	}
 
 	if (rename(path, new_path) < 0) {
+		int rc = -errno;
 		LOG_ERR("failed to rename %s -> %s (%d)",
-			path, new_path, -errno);
+			path, new_path, rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -461,7 +469,8 @@ static int tee_fs_opendir(size_t num_params, struct tee_param *params)
 	strncat(path, name, PATH_MAX);
 	dirp = opendir(path);
 	if (!dirp) {
-		LOG_ERR("failed to open %s (%d)", path, -errno);
+		int rc = -errno;
+		LOG_ERR("failed to open %s (%d)", path, rc);
 		return TEEC_ERROR_ITEM_NOT_FOUND;
 	}
 
@@ -487,7 +496,8 @@ static int tee_fs_closedir(size_t num_params, struct tee_param *params)
 	}
 
 	if (closedir(dirp) < 0) {
-		LOG_ERR("closedir failed (%d)", -errno);
+		int rc = -errno;
+		LOG_ERR("closedir failed (%d)", rc);
 		return TEEC_ERROR_GENERIC;
 	}
 
@@ -529,8 +539,9 @@ static int tee_fs_readdir(size_t num_params, struct tee_param *params)
 	while (true) {
 		entry = readdir(dirp);
 		if (entry == NULL) {
-			if (errno) {
-				LOG_ERR("readdir failure (%d)", -errno);
+			int rc = -errno;
+			if (rc) {
+				LOG_ERR("readdir failure (%d)", rc);
 			}
 			return TEEC_ERROR_ITEM_NOT_FOUND;
 		}
