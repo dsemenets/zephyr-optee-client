@@ -39,4 +39,10 @@ config OPTEE_TEE_SUPPLICANT
 	  applications from application and perform file system operation
 	  on non-volatile memory devices which inaccessible from OP-TEE
 
+config OPTEE_LIBSETEEC
+	bool "Enable libseteec"
+	depends on OPTEE_LIBTEEC
+	help
+	  libseteec stands for secure element control
+
 endif
