@@ -82,12 +82,59 @@ static int new_file(struct fs_file_t **file)
 	return -EMFILE;
 }
 
+static int internal_open(char *path, fs_mode_t flags)
+{
+	int fd, rc;
+	struct fs_file_t *file;
+
+	fd = new_file(&file);
+	if (fd < 0) {
+		rc = TEEC_ERROR_GENERIC;
+		goto free;
+	}
+
+	rc = fs_open(file, path, flags);
+	if (rc < 0) {
+		goto free;
+	}
+	return fd;
+free:
+	if (fd >= 0) {
+		remove_file(fd);
+	}
+	return rc;
+}
+
+static char *dname(char *path)
+{
+	char *slash;
+
+	slash = strrchr(path, '/');
+	if (slash != NULL) {
+		if (slash[1] == 0 && slash != path) {
+			*slash-- = 0;
+			slash = strrchr(path, '/');
+			while (slash != NULL && slash != path) {
+				*slash = 0;
+				if (slash[-1] != '/') {
+					break;
+				}
+				*(--slash) = 0;
+			}
+		}
+		if (slash != NULL && slash != path) {
+			*slash = 0;
+			return path;
+		}
+	}
+	return NULL;
+}
+
 static int tee_fs_open(size_t num_params, struct tee_param *params,
 		       fs_mode_t flags)
 {
 	char *name, path[REE_FS_PATH_MAX] = REE_FS_MP;
-	struct fs_file_t *file;
-	int fd, rc = TEEC_ERROR_GENERIC;
+	int fd, rc = TEEC_SUCCESS;
 
 	if (num_params != 3) {
 		return TEEC_ERROR_BAD_PARAMETERS;
@@ -108,30 +155,46 @@ static int tee_fs_open(size_t num_params, struct tee_param *params,
 	}
 	strncat(path, name, PATH_MAX);
 
-	fd = new_file(&file);
+	fd = internal_open(path, flags);
 	if (fd < 0) {
-		rc = TEEC_ERROR_GENERIC;
-		goto free;
-	}
+		if (flags & FS_O_CREATE) {
+			char *dir;
 
-	rc = fs_open(file, path, flags);
-	if (rc < 0) {
-		if (rc == -ENOENT) {
-			rc = TEEC_ERROR_ITEM_NOT_FOUND;
-			goto free;
+			dir = dname(path);
+			if (!dir) {
+				rc = TEEC_ERROR_GENERIC;
+				goto out;
+			}
+			rc = fs_mkdir(dir);
+			if (rc < 0) {
+				rc = TEEC_ERROR_GENERIC;
+				goto out;
+			}
+			strcpy(path, REE_FS_MP);
+			strncat(path, name, PATH_MAX);
+			fd = internal_open(path, flags);
+			if (fd < 0) {
+				if (fd == -ENOENT) {
+					rc = TEEC_ERROR_ITEM_NOT_FOUND;
+					goto out;
+				}
+				LOG_ERR("failed to create '%s' (%d)", path, fd);
+				rc = TEEC_ERROR_GENERIC;
+				goto out;
+			}
+		} else {
+			if (fd == -ENOENT) {
+				rc = TEEC_ERROR_ITEM_NOT_FOUND;
+				goto out;
+			}
+			LOG_ERR("failed to open '%s' (%d)", path, fd);
+			rc = TEEC_ERROR_GENERIC;
+			goto out;
 		}
-		LOG_ERR("failed to open/create %s (%d)", path, rc);
-		rc = TEEC_ERROR_GENERIC;
-		goto free;
 	}
 
 	params[2].a = fd;
-
-	return TEEC_SUCCESS;
-free:
-	if (fd >= 0) {
-		remove_file(fd);
-	}
+out:
 	return rc;
 }
 
